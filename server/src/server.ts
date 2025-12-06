@@ -42,7 +42,7 @@ app.use(limiter);
 
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-app.use("/auth", authRouter);
+app.use("/api/auth", authRouter);
 
 app.get("/", (req, res) => {
   logger.info("Health Check Endpoint Hit");
