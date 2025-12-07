@@ -11,6 +11,8 @@ import { rateLimit } from "express-rate-limit";
 import { errorMiddleware } from "@/middleware/error-middleware";
 
 import authRouter from "@/routes/auth.router";
+import { createWebSocketServer } from "./utils/websocket";
+import { startConsumer } from "./utils/kafka/chat-message.consumer";
 
 const host = process.env.HOST || "localhost";
 const port = process.env.PORT || 3080;
@@ -46,11 +48,23 @@ app.use("/api/auth", authRouter);
 
 app.get("/", (req, res) => {
   logger.info("Health Check Endpoint Hit");
-  res.send("Stream Wave Server is running!");
+  res.send("Stream Wave Chat app is running!");
 });
 
 app.use(errorMiddleware);
 
-app.listen(port, () => {
-  logger.info(`Server is running at http://${host}:${port}`);
+const server = app.listen(port, () => {
+  logger.info(`✅Server is running at http://${host}:${port}`);
+});
+
+server.on("error", (error: any) => {
+  logger.error(error, "Server encountered an error ❌");
+});
+
+createWebSocketServer(server).catch((error) => {
+  logger.error(error, "Failed to create WebSocket server ❌");
+});
+
+startConsumer().catch((error) => {
+  logger.error(error, "Failed to start Kafka consumer ❌");
 });
